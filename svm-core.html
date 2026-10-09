@@ -1,0 +1,607 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080808">
+
+    <title>SVM Core | Personal Profile</title>
+
+    <style>
+        :root {
+            --bg: #080808;
+            --surface: #111111;
+            --surface-light: #191919;
+            --white: #f5f5f5;
+            --grey: #a0a0a0;
+            --muted: #666666;
+            --border: #292929;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 90px;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--white);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.7;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .container {
+            width: min(1100px, 90%);
+            margin: auto;
+        }
+
+        /* NAVIGATION */
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: rgba(8, 8, 8, 0.9);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        nav {
+            min-height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .logo {
+            font-size: 1.35rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+
+        .logo span {
+            color: var(--muted);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            list-style: none;
+            font-size: 0.85rem;
+            color: var(--grey);
+        }
+
+        .nav-links a:hover {
+            color: white;
+        }
+
+        /* HERO */
+
+        .hero {
+            min-height: 82vh;
+            display: flex;
+            align-items: center;
+            padding: 90px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            width: 420px;
+            height: 420px;
+            right: -100px;
+            top: 60px;
+            border-radius: 50%;
+            background: #202020;
+            filter: blur(100px);
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 780px;
+        }
+
+        .eyebrow {
+            color: var(--grey);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: clamp(3.5rem, 11vw, 7.5rem);
+            line-height: 0.95;
+            letter-spacing: -7px;
+            margin: 28px 0;
+        }
+
+        h1 span {
+            color: #555555;
+        }
+
+        .hero-description {
+            max-width: 540px;
+            color: #aaaaaa;
+            font-size: 1.05rem;
+            margin-bottom: 32px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 12px 22px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            transition: 0.25s ease;
+        }
+
+        .button.primary {
+            color: #080808;
+            background: #f5f5f5;
+            border-color: #f5f5f5;
+        }
+
+        .button:hover {
+            transform: translateY(-3px);
+            border-color: #888888;
+        }
+
+        .button.primary:hover {
+            background: #d0d0d0;
+        }
+
+        /* SHARED SECTIONS */
+
+        section {
+            padding: 95px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .section-label {
+            color: var(--muted);
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            letter-spacing: -2px;
+            line-height: 1.15;
+            margin-bottom: 24px;
+        }
+
+        .section-intro {
+            max-width: 650px;
+            color: var(--grey);
+        }
+
+        /* ABOUT */
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 60px;
+            align-items: start;
+        }
+
+        .about-copy p {
+            color: var(--grey);
+            margin-bottom: 18px;
+        }
+
+        .about-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 28px;
+            border-radius: 8px;
+        }
+
+        .about-card .card-label {
+            font-size: 0.7rem;
+            color: var(--muted);
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .detail {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 13px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.88rem;
+        }
+
+        .detail:last-child {
+            border-bottom: none;
+        }
+
+        .detail span:first-child {
+            color: var(--muted);
+        }
+
+        .detail span:last-child {
+            text-align: right;
+        }
+
+        /* INTERESTS */
+
+        .interest-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 40px;
+        }
+
+        .interest-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            padding: 28px;
+            transition: 0.25s ease;
+        }
+
+        .interest-card:hover {
+            background: var(--surface-light);
+            border-color: #555555;
+            transform: translateY(-5px);
+        }
+
+        .interest-number {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        .interest-card h3 {
+            font-size: 1.15rem;
+            margin: 24px 0 10px;
+        }
+
+        .interest-card p {
+            color: var(--grey);
+            font-size: 0.88rem;
+        }
+
+        /* PHILOSOPHY */
+
+        .quote-box {
+            padding: 55px 35px;
+            background: #101010;
+            border: 1px solid var(--border);
+            border-left: 3px solid #777777;
+        }
+
+        blockquote {
+            font-size: clamp(1.5rem, 4vw, 2.8rem);
+            line-height: 1.35;
+            letter-spacing: -1px;
+            max-width: 800px;
+        }
+
+        blockquote span {
+            color: #777777;
+        }
+
+        .quote-caption {
+            margin-top: 25px;
+            color: var(--muted);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+        }
+
+        /* FOOTER */
+
+        footer {
+            padding: 30px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .footer-note {
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        .back-top {
+            color: var(--grey);
+            font-size: 0.8rem;
+        }
+
+        .back-top:hover {
+            color: white;
+        }
+
+        /* MOBILE */
+
+        @media (max-width: 700px) {
+            .nav-links {
+                gap: 13px;
+                font-size: 0.75rem;
+            }
+
+            h1 {
+                letter-spacing: -3px;
+            }
+
+            .hero {
+                min-height: 75vh;
+                padding: 70px 0;
+            }
+
+            section {
+                padding: 65px 0;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .interest-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quote-box {
+                padding: 35px 22px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .nav-links {
+                gap: 9px;
+                font-size: 0.7rem;
+            }
+
+            .logo {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+
+<body id="top">
+
+    <header>
+        <nav class="container">
+            <a class="logo" href="#top">SVM<span>.</span></a>
+
+            <ul class="nav-links">
+                <li><a href="#about">About</a></li>
+                <li><a href="#interests">Interests</a></li>
+                <li><a href="#mindset">Mindset</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- INTRODUCTION -->
+
+        <section class="hero" style="border-top: none;">
+            <div class="container hero-content">
+                <p class="eyebrow">Personal Profile / 001</p>
+
+                <h1>
+                    SVM<br>
+                    CORE<span>.</span>
+                </h1>
+
+                <p class="hero-description">
+                    Student. Learner. Individual.
+                    Exploring new ideas, building skills, and
+                    creating a life that means something.
+                </p>
+
+                <div class="buttons">
+                    <a href="#about" class="button primary">
+                        Discover More ↗
+                    </a>
+
+                    <a href="#mindset" class="button">
+                        My Mindset
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABOUT ME -->
+
+        <section id="about">
+            <div class="container about-grid">
+
+                <div class="about-copy">
+                    <p class="section-label">01 / Introduction</p>
+
+                    <h2>A little about me.</h2>
+
+                    <p>
+                        Welcome to SVM Core — a personal space that
+                        represents who I am, what I value, and
+                        what I want to become.
+                    </p>
+
+                    <p>
+                        I am a student and a lifelong learner,
+                        interested in exploring different ideas,
+                        improving myself, and understanding the
+                        world beyond the obvious.
+                    </p>
+
+                    <p>
+                        I believe a person can be serious about
+                        their future without losing their sense
+                        of humor. There is room for ambition,
+                        curiosity, and a little chaos.
+                    </p>
+
+                    <p>
+                        This is not a finished story.
+                        It is a work in progress.
+                    </p>
+                </div>
+
+                <div class="about-card">
+                    <p class="card-label">PROFILE DETAILS</p>
+
+                    <div class="detail">
+                        <span>Name</span>
+                        <span>SVM Core</span>
+                    </div>
+
+                    <div class="detail">
+                        <span>Occupation</span>
+                        <span>Student</span>
+                    </div>
+
+                    <div class="detail">
+                        <span>Mindset</span>
+                        <span>Growth-oriented</span>
+                    </div>
+
+                    <div class="detail">
+                        <span>Interests</span>
+                        <span>Learning & Ideas</span>
+                    </div>
+
+                    <div class="detail">
+                        <span>Theme</span>
+                        <span>Black / Grey / White</span>
+                    </div>
+
+                    <div class="detail">
+                        <span>Status</span>
+                        <span>In Progress</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- INTERESTS -->
+
+        <section id="interests">
+            <div class="container">
+
+                <p class="section-label">02 / Areas of Interest</p>
+
+                <h2>What drives me.</h2>
+
+                <p class="section-intro">
+                    Different interests. Different perspectives.
+                    One continuous journey of learning and growth.
+                </p>
+
+                <div class="interest-grid">
+
+                    <article class="interest-card">
+                        <span class="interest-number">01 — LEARN</span>
+                        <h3>Knowledge & Skills</h3>
+                        <p>
+                            Learning new things, developing useful
+                            skills, and staying curious about
+                            opportunities beyond the classroom.
+                        </p>
+                    </article>
+
+                    <article class="interest-card">
+                        <span class="interest-number">02 — BUILD</span>
+                        <h3>Personal Growth</h3>
+                        <p>
+                            Working toward better habits,
+                            greater self-awareness, and a
+                            stronger version of myself.
+                        </p>
+                    </article>
+
+                    <article class="interest-card">
+                        <span class="interest-number">03 — EXPLORE</span>
+                        <h3>Ideas & Creativity</h3>
+                        <p>
+                            Exploring technology, design,
+                            different perspectives, and ideas
+                            that make ordinary things interesting.
+                        </p>
+                    </article>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- MINDSET -->
+
+        <section id="mindset">
+            <div class="container">
+
+                <p class="section-label">03 / Personal Philosophy</p>
+
+                <div class="quote-box">
+                    <blockquote>
+                        "Be serious about your goals,
+                        <span>but never take life so seriously</span>
+                        that you forget to live."
+                    </blockquote>
+
+                    <p class="quote-caption">
+                        THE SVM CORE MINDSET
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <a class="logo" href="#top">SVM<span>.</span></a>
+
+            <p class="footer-note">
+                © <span id="year"></span> SVM Core.
+                All rights reserved.
+            </p>
+
+            <a class="back-top" href="#top">Back to top ↑</a>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById("year").textContent =
+            new Date().getFullYear();
+    </script>
+
+</body>
+</html>
