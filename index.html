@@ -1,22 +1,102 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#080808">
+    <meta name="color-scheme" content="dark light">
+    <meta name="theme-color" id="metaThemeColor" content="#080808">
 
     <title>SVM Core | Personal Profile</title>
 
+    <!-- Runs before first paint so the saved theme / language never flashes -->
+    <script>
+        (function () {
+            var root = document.documentElement;
+            var theme = null, lang = null;
+            try {
+                theme = localStorage.getItem("svm-theme");
+                lang = localStorage.getItem("svm-lang");
+            } catch (e) {}
+
+            if (theme !== "light" && theme !== "dark") {
+                theme = (window.matchMedia &&
+                    window.matchMedia("(prefers-color-scheme: light)").matches)
+                    ? "light" : "dark";
+            }
+            root.setAttribute("data-theme", theme);
+
+            var htmlLang = { en: "en", ar: "ar-SA", bar: "bar", ru: "ru", ko: "ko" };
+            if (lang && htmlLang[lang]) {
+                root.lang = htmlLang[lang];
+                root.dir = (lang === "ar") ? "rtl" : "ltr";
+            }
+        })();
+    </script>
+
+    <!-- Fonts for Arabic and Korean (browsers only download them when those scripts are used) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+
     <style>
         :root {
+            color-scheme: dark;
+
             --bg: #080808;
             --surface: #111111;
             --surface-light: #191919;
-            --white: #f5f5f5;
+            --text: #f5f5f5;
             --grey: #a0a0a0;
             --muted: #666666;
             --border: #292929;
+            --border-strong: #555555;
+
+            --header-bg: rgba(8, 8, 8, 0.9);
+            --blob: #202020;
+            --blob-opacity: 0.35;
+            --h1-dim: #555555;
+            --hero-text: #aaaaaa;
+
+            --btn-bg: #f5f5f5;
+            --btn-fg: #080808;
+            --btn-hover: #d0d0d0;
+            --btn-border-hover: #888888;
+
+            --quote-bg: #101010;
+            --accent: #777777;
+            --quote-dim: #777777;
+
+            --shadow: rgba(0, 0, 0, 0.45);
+        }
+
+        :root[data-theme="light"] {
+            color-scheme: light;
+
+            --bg: #f5f5f5;
+            --surface: #ffffff;
+            --surface-light: #ececec;
+            --text: #0d0d0d;
+            --grey: #555555;
+            --muted: #767676;
+            --border: #dcdcdc;
+            --border-strong: #9a9a9a;
+
+            --header-bg: rgba(245, 245, 245, 0.88);
+            --blob: #c9c9c9;
+            --blob-opacity: 0.6;
+            --h1-dim: #b0b0b0;
+            --hero-text: #444444;
+
+            --btn-bg: #0d0d0d;
+            --btn-fg: #f5f5f5;
+            --btn-hover: #333333;
+            --btn-border-hover: #555555;
+
+            --quote-bg: #ffffff;
+            --accent: #555555;
+            --quote-dim: #8a8a8a;
+
+            --shadow: rgba(0, 0, 0, 0.14);
         }
 
         * {
@@ -32,7 +112,7 @@
 
         body {
             background: var(--bg);
-            color: var(--white);
+            color: var(--text);
             font-family: Arial, Helvetica, sans-serif;
             line-height: 1.7;
         }
@@ -53,8 +133,9 @@
             position: sticky;
             top: 0;
             z-index: 10;
-            background: rgba(8, 8, 8, 0.9);
+            background: var(--header-bg);
             backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             border-bottom: 1px solid var(--border);
         }
 
@@ -85,7 +166,162 @@
         }
 
         .nav-links a:hover {
-            color: white;
+            color: var(--text);
+        }
+
+        /* CONTROLS (language + theme) */
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ctrl-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            height: 38px;
+            padding: 0 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: transparent;
+            color: var(--text);
+            font: inherit;
+            font-size: 0.8rem;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--border-strong);
+            background: var(--surface);
+        }
+
+        .ctrl-btn:focus-visible,
+        .lang-option:focus-visible {
+            outline: 2px solid var(--grey);
+            outline-offset: 2px;
+        }
+
+        .flag {
+            display: block;
+            width: 22px;
+            height: 15px;
+            flex: none;
+            border-radius: 2px;
+            box-shadow: 0 0 0 1px rgba(128, 128, 128, 0.35);
+        }
+
+        .chevron {
+            width: 10px;
+            height: 10px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2.4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: transform 0.25s ease;
+        }
+
+        .lang.open .chevron {
+            transform: rotate(180deg);
+        }
+
+        .lang {
+            position: relative;
+        }
+
+        .lang-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            inset-inline-end: 0;
+            min-width: 190px;
+            padding: 6px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 18px 40px var(--shadow);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(-6px) scale(0.97);
+            transform-origin: top;
+            transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
+        }
+
+        .lang.open .lang-menu {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: none;
+            transition-delay: 0s;
+        }
+
+        .lang-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 10px 12px;
+            border: 0;
+            border-radius: 5px;
+            background: transparent;
+            color: var(--text);
+            font: inherit;
+            font-size: 0.88rem;
+            text-align: start;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .lang-option:hover,
+        .lang-option:focus-visible {
+            background: var(--surface-light);
+        }
+
+        .lang-option[aria-checked="true"] {
+            font-weight: 700;
+        }
+
+        .lang-option[aria-checked="true"]::after {
+            content: "✓";
+            margin-inline-start: auto;
+            color: var(--grey);
+        }
+
+        .theme-toggle {
+            position: relative;
+            width: 38px;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .theme-toggle .icon {
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+        }
+
+        :root[data-theme="dark"] .icon-moon {
+            opacity: 0;
+            transform: rotate(-90deg) scale(0.3);
+        }
+
+        :root[data-theme="light"] .icon-sun {
+            opacity: 0;
+            transform: rotate(90deg) scale(0.3);
         }
 
         /* HERO */
@@ -104,12 +340,12 @@
             position: absolute;
             width: 420px;
             height: 420px;
-            right: -100px;
+            inset-inline-end: -100px;
             top: 60px;
             border-radius: 50%;
-            background: #202020;
+            background: var(--blob);
             filter: blur(100px);
-            opacity: 0.35;
+            opacity: var(--blob-opacity);
             pointer-events: none;
         }
 
@@ -134,12 +370,12 @@
         }
 
         h1 span {
-            color: #555555;
+            color: var(--h1-dim);
         }
 
         .hero-description {
             max-width: 540px;
-            color: #aaaaaa;
+            color: var(--hero-text);
             font-size: 1.05rem;
             margin-bottom: 32px;
         }
@@ -161,18 +397,18 @@
         }
 
         .button.primary {
-            color: #080808;
-            background: #f5f5f5;
-            border-color: #f5f5f5;
+            color: var(--btn-fg);
+            background: var(--btn-bg);
+            border-color: var(--btn-bg);
         }
 
         .button:hover {
             transform: translateY(-3px);
-            border-color: #888888;
+            border-color: var(--btn-border-hover);
         }
 
         .button.primary:hover {
-            background: #d0d0d0;
+            background: var(--btn-hover);
         }
 
         /* SHARED SECTIONS */
@@ -248,7 +484,7 @@
         }
 
         .detail span:last-child {
-            text-align: right;
+            text-align: end;
         }
 
         /* INTERESTS */
@@ -270,7 +506,7 @@
 
         .interest-card:hover {
             background: var(--surface-light);
-            border-color: #555555;
+            border-color: var(--border-strong);
             transform: translateY(-5px);
         }
 
@@ -293,9 +529,9 @@
 
         .quote-box {
             padding: 55px 35px;
-            background: #101010;
+            background: var(--quote-bg);
             border: 1px solid var(--border);
-            border-left: 3px solid #777777;
+            border-inline-start: 3px solid var(--accent);
         }
 
         blockquote {
@@ -305,8 +541,8 @@
             max-width: 800px;
         }
 
-        blockquote span {
-            color: #777777;
+        blockquote .quote-dim {
+            color: var(--quote-dim);
         }
 
         .quote-caption {
@@ -342,15 +578,104 @@
         }
 
         .back-top:hover {
-            color: white;
+            color: var(--text);
+        }
+
+        /* THEME TRANSITION */
+
+        /* Circular reveal (View Transitions API) */
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+            animation: none;
+            mix-blend-mode: normal;
+        }
+
+        /* Fallback for browsers without View Transitions: smooth colour fade */
+        html.theme-anim,
+        html.theme-anim *,
+        html.theme-anim *::before,
+        html.theme-anim *::after {
+            transition: background-color 0.5s ease, color 0.5s ease,
+                        border-color 0.5s ease, fill 0.5s ease, stroke 0.5s ease !important;
+        }
+
+        /* LANGUAGE TRANSITION (soft fade + lift while the text swaps) */
+
+        header nav,
+        main,
+        footer {
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        body.lang-out header nav,
+        body.lang-out main,
+        body.lang-out footer {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        /* LANGUAGE-SPECIFIC TYPOGRAPHY */
+
+        /* Arabic: right-to-left, joined letters must not be letter-spaced */
+        html[lang^="ar"] body {
+            font-family: "Noto Sans Arabic", Arial, Helvetica, sans-serif;
+        }
+
+        html[lang^="ar"] :is(.eyebrow, h2, .section-label, .card-label, blockquote, .quote-caption) {
+            letter-spacing: 0;
+        }
+
+        html[lang^="ar"] h2 {
+            line-height: 1.4;
+        }
+
+        html[lang^="ar"] body {
+            line-height: 1.9;
+        }
+
+        /* Korean */
+        html[lang="ko"] body {
+            font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+            word-break: keep-all;
+        }
+
+        html[lang="ko"] :is(h2, blockquote) {
+            letter-spacing: -0.5px;
+        }
+
+        /* Russian: Cyrillic is wider, so ease the tight tracking a little */
+        html[lang="ru"] :is(h2, blockquote) {
+            letter-spacing: -1px;
         }
 
         /* MOBILE */
 
         @media (max-width: 700px) {
+            html {
+                scroll-padding-top: 130px;
+            }
+
+            nav {
+                flex-wrap: wrap;
+                min-height: 0;
+                padding: 12px 0 10px;
+                row-gap: 8px;
+            }
+
+            .logo {
+                order: 1;
+            }
+
+            .controls {
+                order: 2;
+                margin-inline-start: auto;
+            }
+
             .nav-links {
-                gap: 13px;
-                font-size: 0.75rem;
+                order: 3;
+                width: 100%;
+                gap: 18px;
+                font-size: 0.78rem;
             }
 
             h1 {
@@ -382,12 +707,27 @@
 
         @media (max-width: 380px) {
             .nav-links {
-                gap: 9px;
-                font-size: 0.7rem;
+                gap: 12px;
+                font-size: 0.72rem;
             }
 
             .logo {
                 font-size: 1.1rem;
+            }
+
+            .ctrl-btn {
+                padding: 0 9px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            *, *::before, *::after {
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
             }
         }
     </style>
@@ -395,15 +735,131 @@
 
 <body id="top">
 
+    <!-- Flag artwork (drawn as SVG so it looks the same on every device) -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <!-- English (United Kingdom) -->
+        <symbol id="flag-en" viewBox="0 0 60 40">
+            <rect width="60" height="40" fill="#012169"/>
+            <path d="M0 0L60 40M60 0L0 40" stroke="#ffffff" stroke-width="8"/>
+            <path d="M0 0L60 40M60 0L0 40" stroke="#C8102E" stroke-width="3"/>
+            <path d="M30 0V40M0 20H60" stroke="#ffffff" stroke-width="13"/>
+            <path d="M30 0V40M0 20H60" stroke="#C8102E" stroke-width="8"/>
+        </symbol>
+
+        <!-- Saudi Arabia (simplified) -->
+        <symbol id="flag-ar" viewBox="0 0 60 40">
+            <rect width="60" height="40" fill="#006C35"/>
+            <path d="M14 13H46" stroke="#ffffff" stroke-width="3" stroke-dasharray="2.4 1.3"/>
+            <path d="M19 19.5H41" stroke="#ffffff" stroke-width="3" stroke-dasharray="2.4 1.3"/>
+            <path d="M13 29H44" stroke="#ffffff" stroke-width="2"/>
+            <path d="M13 29L17 27.6V30.4Z" fill="#ffffff"/>
+            <path d="M44 26.5V31.5" stroke="#ffffff" stroke-width="2"/>
+            <path d="M47 28.2V29.8" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"/>
+        </symbol>
+
+        <!-- Germany (id stays "flag-bar" because the page's German text key is "bar") -->
+        <symbol id="flag-bar" viewBox="0 0 60 40">
+            <rect width="60" height="40" fill="#FFCE00"/>
+            <rect width="60" height="13.34" fill="#000000"/>
+            <rect y="13.33" width="60" height="13.34" fill="#DD0000"/>
+        </symbol>
+
+        <!-- Russia -->
+        <symbol id="flag-ru" viewBox="0 0 60 40">
+            <rect width="60" height="40" fill="#ffffff"/>
+            <rect y="13.34" width="60" height="13.33" fill="#0039A6"/>
+            <rect y="26.67" width="60" height="13.33" fill="#D52B1E"/>
+        </symbol>
+
+        <!-- South Korea (simplified) -->
+        <symbol id="flag-ko" viewBox="0 0 60 40">
+            <rect width="60" height="40" fill="#ffffff"/>
+            <circle cx="30" cy="20" r="9" fill="#CD2E3A"/>
+            <path d="M21 20A9 9 0 0 0 39 20A4.5 4.5 0 0 0 30 20A4.5 4.5 0 0 1 21 20Z" fill="#0047A0"/>
+            <g fill="#000000">
+                <g transform="translate(10 8) rotate(-33.7)">
+                    <rect x="-5" y="-3" width="10" height="1.6"/>
+                    <rect x="-5" y="-0.8" width="10" height="1.6"/>
+                    <rect x="-5" y="1.4" width="10" height="1.6"/>
+                </g>
+                <g transform="translate(50 32) rotate(-33.7)">
+                    <rect x="-5" y="-3" width="4.2" height="1.6"/><rect x="0.8" y="-3" width="4.2" height="1.6"/>
+                    <rect x="-5" y="-0.8" width="4.2" height="1.6"/><rect x="0.8" y="-0.8" width="4.2" height="1.6"/>
+                    <rect x="-5" y="1.4" width="4.2" height="1.6"/><rect x="0.8" y="1.4" width="4.2" height="1.6"/>
+                </g>
+                <g transform="translate(50 8) rotate(33.7)">
+                    <rect x="-5" y="-3" width="4.2" height="1.6"/><rect x="0.8" y="-3" width="4.2" height="1.6"/>
+                    <rect x="-5" y="-0.8" width="10" height="1.6"/>
+                    <rect x="-5" y="1.4" width="4.2" height="1.6"/><rect x="0.8" y="1.4" width="4.2" height="1.6"/>
+                </g>
+                <g transform="translate(10 32) rotate(33.7)">
+                    <rect x="-5" y="-3" width="10" height="1.6"/>
+                    <rect x="-5" y="-0.8" width="4.2" height="1.6"/><rect x="0.8" y="-0.8" width="4.2" height="1.6"/>
+                    <rect x="-5" y="1.4" width="10" height="1.6"/>
+                </g>
+            </g>
+        </symbol>
+    </svg>
+
     <header>
         <nav class="container">
-            <a class="logo" href="#top">SVM<span>.</span></a>
+            <a class="logo" href="#top" dir="ltr">SVM<span>.</span></a>
 
             <ul class="nav-links">
-                <li><a href="#about">About</a></li>
-                <li><a href="#interests">Interests</a></li>
-                <li><a href="#mindset">Mindset</a></li>
+                <li><a href="#about" data-i18n="nav_about">About</a></li>
+                <li><a href="#interests" data-i18n="nav_interests">Interests</a></li>
+                <li><a href="#mindset" data-i18n="nav_mindset">Mindset</a></li>
             </ul>
+
+            <div class="controls">
+
+                <!-- LANGUAGE SWITCHER -->
+                <div class="lang" id="lang">
+                    <button class="ctrl-btn" id="langBtn" type="button"
+                            aria-haspopup="menu" aria-expanded="false" aria-controls="langMenu"
+                            data-i18n-aria="aria_lang" aria-label="Change language" title="Change language">
+                        <svg class="flag" viewBox="0 0 60 40" aria-hidden="true"><use id="curFlag" href="#flag-en"/></svg>
+                        <span id="curCode">EN</span>
+                        <svg class="chevron" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4.2L6 8L10 4.2"/></svg>
+                    </button>
+
+                    <div class="lang-menu" id="langMenu" role="menu">
+                        <button class="lang-option" type="button" role="menuitemradio" aria-checked="true" data-lang="en" lang="en">
+                            <svg class="flag" viewBox="0 0 60 40" aria-hidden="true"><use href="#flag-en"/></svg>
+                            <span>English</span>
+                        </button>
+                        <button class="lang-option" type="button" role="menuitemradio" aria-checked="false" data-lang="ar" lang="ar">
+                            <svg class="flag" viewBox="0 0 60 40" aria-hidden="true"><use href="#flag-ar"/></svg>
+                            <span>العربية</span>
+                        </button>
+                        <button class="lang-option" type="button" role="menuitemradio" aria-checked="false" data-lang="bar" lang="de">
+                            <svg class="flag" viewBox="0 0 60 40" aria-hidden="true"><use href="#flag-bar"/></svg>
+                            <span>Deutsch</span>
+                        </button>
+                        <button class="lang-option" type="button" role="menuitemradio" aria-checked="false" data-lang="ru" lang="ru">
+                            <svg class="flag" viewBox="0 0 60 40" aria-hidden="true"><use href="#flag-ru"/></svg>
+                            <span>Русский</span>
+                        </button>
+                        <button class="lang-option" type="button" role="menuitemradio" aria-checked="false" data-lang="ko" lang="ko">
+                            <svg class="flag" viewBox="0 0 60 40" aria-hidden="true"><use href="#flag-ko"/></svg>
+                            <span>한국어</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- THEME TOGGLE -->
+                <button class="ctrl-btn theme-toggle" id="themeToggle" type="button"
+                        data-i18n-aria="aria_theme" aria-label="Toggle light / dark mode" title="Toggle light / dark mode">
+                    <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4"/>
+                        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+                    </svg>
+                    <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+                    </svg>
+                </button>
+
+            </div>
         </nav>
     </header>
 
@@ -413,27 +869,16 @@
 
         <section class="hero" style="border-top: none;">
             <div class="container hero-content">
-                <p class="eyebrow">Personal Profile / 001</p>
+                <p class="eyebrow" data-i18n="eyebrow">Personal Profile / 001</p>
 
-                <h1>
-                    SVM<br>
-                    CORE<span>.</span>
-                </h1>
+                <h1><bdi dir="ltr">SVM<br>CORE<span>.</span></bdi></h1>
 
-                <p class="hero-description">
-                    Student. Learner. Individual.
-                    Exploring new ideas, building skills, and
-                    creating a life that means something.
-                </p>
+                <p class="hero-description" data-i18n="hero_desc">Student. Learner. Individual. Exploring new ideas, building skills, and creating a life that means something.</p>
 
                 <div class="buttons">
-                    <a href="#about" class="button primary">
-                        Discover More ↗
-                    </a>
+                    <a href="#about" class="button primary" data-i18n="btn_discover">Discover More ↗</a>
 
-                    <a href="#mindset" class="button">
-                        My Mindset
-                    </a>
+                    <a href="#mindset" class="button" data-i18n="btn_mindset">My Mindset</a>
                 </div>
             </div>
         </section>
@@ -444,67 +889,50 @@
             <div class="container about-grid">
 
                 <div class="about-copy">
-                    <p class="section-label">01 / Introduction</p>
+                    <p class="section-label" data-i18n="about_label">01 / Introduction</p>
 
-                    <h2>A little about me.</h2>
+                    <h2 data-i18n="about_title">A little about me.</h2>
 
-                    <p>
-                        Welcome to SVM Core — a personal space that
-                        represents who I am, what I value, and
-                        what I want to become.
-                    </p>
+                    <p data-i18n="about_p1">Welcome to SVM Core — a personal space that represents who I am, what I value, and what I want to become.</p>
 
-                    <p>
-                        I am a student and a lifelong learner,
-                        interested in exploring different ideas,
-                        improving myself, and understanding the
-                        world beyond the obvious.
-                    </p>
+                    <p data-i18n="about_p2">I am a student and a lifelong learner, interested in exploring different ideas, improving myself, and understanding the world beyond the obvious.</p>
 
-                    <p>
-                        I believe a person can be serious about
-                        their future without losing their sense
-                        of humor. There is room for ambition,
-                        curiosity, and a little chaos.
-                    </p>
+                    <p data-i18n="about_p3">I believe a person can be serious about their future without losing their sense of humor. There is room for ambition, curiosity, and a little chaos.</p>
 
-                    <p>
-                        This is not a finished story.
-                        It is a work in progress.
-                    </p>
+                    <p data-i18n="about_p4">This is not a finished story. It is a work in progress.</p>
                 </div>
 
                 <div class="about-card">
-                    <p class="card-label">PROFILE DETAILS</p>
+                    <p class="card-label" data-i18n="card_label">PROFILE DETAILS</p>
 
                     <div class="detail">
-                        <span>Name</span>
+                        <span data-i18n="d_name">Name</span>
                         <span>SVM Core</span>
                     </div>
 
                     <div class="detail">
-                        <span>Occupation</span>
-                        <span>Student</span>
+                        <span data-i18n="d_occupation">Occupation</span>
+                        <span data-i18n="v_occupation">Student</span>
                     </div>
 
                     <div class="detail">
-                        <span>Mindset</span>
-                        <span>Growth-oriented</span>
+                        <span data-i18n="d_mindset">Mindset</span>
+                        <span data-i18n="v_mindset">Growth-oriented</span>
                     </div>
 
                     <div class="detail">
-                        <span>Interests</span>
-                        <span>Learning & Ideas</span>
+                        <span data-i18n="d_interests">Interests</span>
+                        <span data-i18n="v_interests">Learning &amp; Ideas</span>
                     </div>
 
                     <div class="detail">
-                        <span>Theme</span>
-                        <span>Black / Grey / White</span>
+                        <span data-i18n="d_theme">Theme</span>
+                        <span data-i18n="v_theme">Black / Grey / White</span>
                     </div>
 
                     <div class="detail">
-                        <span>Status</span>
-                        <span>In Progress</span>
+                        <span data-i18n="d_status">Status</span>
+                        <span data-i18n="v_status">In Progress</span>
                     </div>
                 </div>
 
@@ -516,45 +944,30 @@
         <section id="interests">
             <div class="container">
 
-                <p class="section-label">02 / Areas of Interest</p>
+                <p class="section-label" data-i18n="int_label">02 / Areas of Interest</p>
 
-                <h2>What drives me.</h2>
+                <h2 data-i18n="int_title">What drives me.</h2>
 
-                <p class="section-intro">
-                    Different interests. Different perspectives.
-                    One continuous journey of learning and growth.
-                </p>
+                <p class="section-intro" data-i18n="int_intro">Different interests. Different perspectives. One continuous journey of learning and growth.</p>
 
                 <div class="interest-grid">
 
                     <article class="interest-card">
-                        <span class="interest-number">01 — LEARN</span>
-                        <h3>Knowledge & Skills</h3>
-                        <p>
-                            Learning new things, developing useful
-                            skills, and staying curious about
-                            opportunities beyond the classroom.
-                        </p>
+                        <span class="interest-number" data-i18n="i1_num">01 — LEARN</span>
+                        <h3 data-i18n="i1_title">Knowledge &amp; Skills</h3>
+                        <p data-i18n="i1_text">Learning new things, developing useful skills, and staying curious about opportunities beyond the classroom.</p>
                     </article>
 
                     <article class="interest-card">
-                        <span class="interest-number">02 — BUILD</span>
-                        <h3>Personal Growth</h3>
-                        <p>
-                            Working toward better habits,
-                            greater self-awareness, and a
-                            stronger version of myself.
-                        </p>
+                        <span class="interest-number" data-i18n="i2_num">02 — BUILD</span>
+                        <h3 data-i18n="i2_title">Personal Growth</h3>
+                        <p data-i18n="i2_text">Working toward better habits, greater self-awareness, and a stronger version of myself.</p>
                     </article>
 
                     <article class="interest-card">
-                        <span class="interest-number">03 — EXPLORE</span>
-                        <h3>Ideas & Creativity</h3>
-                        <p>
-                            Exploring technology, design,
-                            different perspectives, and ideas
-                            that make ordinary things interesting.
-                        </p>
+                        <span class="interest-number" data-i18n="i3_num">03 — EXPLORE</span>
+                        <h3 data-i18n="i3_title">Ideas &amp; Creativity</h3>
+                        <p data-i18n="i3_text">Exploring technology, design, different perspectives, and ideas that make ordinary things interesting.</p>
                     </article>
 
                 </div>
@@ -566,18 +979,16 @@
         <section id="mindset">
             <div class="container">
 
-                <p class="section-label">03 / Personal Philosophy</p>
+                <p class="section-label" data-i18n="mind_label">03 / Personal Philosophy</p>
 
                 <div class="quote-box">
                     <blockquote>
-                        "Be serious about your goals,
-                        <span>but never take life so seriously</span>
-                        that you forget to live."
+                        <span data-i18n="q1">“Be serious about your goals,</span>
+                        <span class="quote-dim" data-i18n="q2">but never take life so seriously</span>
+                        <span data-i18n="q3">that you forget to live.”</span>
                     </blockquote>
 
-                    <p class="quote-caption">
-                        THE SVM CORE MINDSET
-                    </p>
+                    <p class="quote-caption" data-i18n="quote_caption">THE SVM CORE MINDSET</p>
                 </div>
 
             </div>
@@ -587,20 +998,479 @@
 
     <footer>
         <div class="container footer-content">
-            <a class="logo" href="#top">SVM<span>.</span></a>
+            <a class="logo" href="#top" dir="ltr">SVM<span>.</span></a>
 
-            <p class="footer-note">
-                © <span id="year"></span> SVM Core.
-                All rights reserved.
-            </p>
+            <p class="footer-note" data-i18n="footer_note">© 2026 SVM Core. All rights reserved.</p>
 
-            <a class="back-top" href="#top">Back to top ↑</a>
+            <a class="back-top" href="#top" data-i18n="back_top">Back to top ↑</a>
         </div>
     </footer>
 
+    <!-- ALL TRANSLATIONS LIVE HERE (edit text here, nowhere else) -->
+    <script type="application/json" id="i18n-data">
+{
+  "en": {
+    "title": "SVM Core | Personal Profile",
+    "aria_lang": "Change language",
+    "aria_theme": "Toggle light / dark mode",
+    "nav_about": "About",
+    "nav_interests": "Interests",
+    "nav_mindset": "Mindset",
+    "eyebrow": "Personal Profile / 001",
+    "hero_desc": "Student. Learner. Individual. Exploring new ideas, building skills, and creating a life that means something.",
+    "btn_discover": "Discover More ↗",
+    "btn_mindset": "My Mindset",
+    "about_label": "01 / Introduction",
+    "about_title": "A little about me.",
+    "about_p1": "Welcome to SVM Core — a personal space that represents who I am, what I value, and what I want to become.",
+    "about_p2": "I am a student and a lifelong learner, interested in exploring different ideas, improving myself, and understanding the world beyond the obvious.",
+    "about_p3": "I believe a person can be serious about their future without losing their sense of humor. There is room for ambition, curiosity, and a little chaos.",
+    "about_p4": "This is not a finished story. It is a work in progress.",
+    "card_label": "PROFILE DETAILS",
+    "d_name": "Name",
+    "d_occupation": "Occupation",
+    "v_occupation": "Student",
+    "d_mindset": "Mindset",
+    "v_mindset": "Growth-oriented",
+    "d_interests": "Interests",
+    "v_interests": "Learning & Ideas",
+    "d_theme": "Theme",
+    "v_theme": "Black / Grey / White",
+    "d_status": "Status",
+    "v_status": "In Progress",
+    "int_label": "02 / Areas of Interest",
+    "int_title": "What drives me.",
+    "int_intro": "Different interests. Different perspectives. One continuous journey of learning and growth.",
+    "i1_num": "01 — LEARN",
+    "i1_title": "Knowledge & Skills",
+    "i1_text": "Learning new things, developing useful skills, and staying curious about opportunities beyond the classroom.",
+    "i2_num": "02 — BUILD",
+    "i2_title": "Personal Growth",
+    "i2_text": "Working toward better habits, greater self-awareness, and a stronger version of myself.",
+    "i3_num": "03 — EXPLORE",
+    "i3_title": "Ideas & Creativity",
+    "i3_text": "Exploring technology, design, different perspectives, and ideas that make ordinary things interesting.",
+    "mind_label": "03 / Personal Philosophy",
+    "q1": "“Be serious about your goals,",
+    "q2": "but never take life so seriously",
+    "q3": "that you forget to live.”",
+    "quote_caption": "THE SVM CORE MINDSET",
+    "footer_note": "© {year} SVM Core. All rights reserved.",
+    "back_top": "Back to top ↑"
+  },
+
+  "ar": {
+    "title": "SVM Core | ملف شخصي",
+    "aria_lang": "تغيير اللغة",
+    "aria_theme": "تبديل الوضع الفاتح / الداكن",
+    "nav_about": "نبذة عني",
+    "nav_interests": "اهتماماتي",
+    "nav_mindset": "طريقة تفكيري",
+    "eyebrow": "ملف شخصي / 001",
+    "hero_desc": "طالب. متعلّم. إنسان. أستكشف أفكارًا جديدة، وأبني مهاراتي، وأصنع حياة لها معنى.",
+    "btn_discover": "اكتشف المزيد ↖",
+    "btn_mindset": "طريقة تفكيري",
+    "about_label": "01 / مقدمة",
+    "about_title": "نبذة بسيطة عني.",
+    "about_p1": "أهلًا بك في SVM Core — مساحة شخصية تعبّر عن هويتي، وعمّا أقدّره، وعمّا أطمح أن أصبح عليه.",
+    "about_p2": "أنا طالب ومتعلّم مدى الحياة، يهمّني استكشاف الأفكار المختلفة، وتطوير نفسي، وفهم العالم بما يتجاوز الظاهر.",
+    "about_p3": "أؤمن بأن الإنسان يستطيع أن يكون جادًّا في شأن مستقبله دون أن يفقد روح الدعابة. هناك متّسع للطموح والفضول وقليل من الفوضى.",
+    "about_p4": "هذه ليست قصة مكتملة. إنها عمل قيد التطوير.",
+    "card_label": "تفاصيل الملف الشخصي",
+    "d_name": "الاسم",
+    "d_occupation": "المهنة",
+    "v_occupation": "طالب",
+    "d_mindset": "طريقة التفكير",
+    "v_mindset": "عقلية نموّ",
+    "d_interests": "الاهتمامات",
+    "v_interests": "التعلّم والأفكار",
+    "d_theme": "الألوان",
+    "v_theme": "أسود / رمادي / أبيض",
+    "d_status": "الحالة",
+    "v_status": "قيد التطوير",
+    "int_label": "02 / مجالات الاهتمام",
+    "int_title": "ما الذي يحرّكني.",
+    "int_intro": "اهتمامات مختلفة. وجهات نظر مختلفة. رحلة واحدة مستمرة من التعلّم والنمو.",
+    "i1_num": "01 — تعلّم",
+    "i1_title": "المعرفة والمهارات",
+    "i1_text": "تعلّم أشياء جديدة، وتطوير مهارات مفيدة، وإبقاء الفضول حيًّا تجاه الفرص التي تتجاوز حدود الفصل الدراسي.",
+    "i2_num": "02 — بناء",
+    "i2_title": "التطوّر الشخصي",
+    "i2_text": "العمل على عادات أفضل، ووعي أعمق بالذات، ونسخة أقوى مني.",
+    "i3_num": "03 — استكشاف",
+    "i3_title": "الأفكار والإبداع",
+    "i3_text": "استكشاف التقنية والتصميم ووجهات النظر المختلفة، والأفكار التي تجعل الأشياء العادية مثيرة للاهتمام.",
+    "mind_label": "03 / فلسفتي الشخصية",
+    "q1": "“كن جادًّا في أهدافك،",
+    "q2": "لكن لا تأخذ الحياة على محمل الجد",
+    "q3": "إلى حدّ أن تنسى أن تعيش.”",
+    "quote_caption": "عقلية SVM Core",
+    "footer_note": "© {year} SVM Core. جميع الحقوق محفوظة.",
+    "back_top": "العودة للأعلى ↑"
+  },
+
+  "bar": {
+    "title": "SVM Core | Mei Profil",
+    "aria_lang": "Sprach ändern",
+    "aria_theme": "Hell-/Dunkelmodus wechseln",
+    "nav_about": "Über mi",
+    "nav_interests": "Interessn",
+    "nav_mindset": "Einstellung",
+    "eyebrow": "Mei Profil / 001",
+    "hero_desc": "Student. Lerner. A Original. I probier neie Ideen aus, bau mir Fähigkeitn auf und schaff mir a Lebn, des wos Sinn hod.",
+    "btn_discover": "Mehr entdeckn ↗",
+    "btn_mindset": "Mei Einstellung",
+    "about_label": "01 / Kurz vorgstellt",
+    "about_title": "A bisserl wos über mi.",
+    "about_p1": "Griaß di bei SVM Core – a persönlicher Platz, der zoagt, wer i bin, wos mir wichtig is und wos i amoi werdn mog.",
+    "about_p2": "I bin Student und lern mei ganzes Lebn lang. Mi interessiern verschiedene Ideen, i mog an mir arbeitn und de Welt hinter dem verstehn, wos ma auf’n erschtn Blick siagt.",
+    "about_p3": "I glaub, ma ko seine Zukunft ernst nehma und trotzdem seinen Humor ned verliern. Fia Ehrgeiz, Neigier und a bisserl Chaos is imma Platz.",
+    "about_p4": "Des is koa fertige Gschicht. Des is a Baustelle.",
+    "card_label": "PROFILDATN",
+    "d_name": "Nam",
+    "d_occupation": "Beruf",
+    "v_occupation": "Student",
+    "d_mindset": "Einstellung",
+    "v_mindset": "Will wachsn",
+    "d_interests": "Interessn",
+    "v_interests": "Lernen & Ideen",
+    "d_theme": "Farbn",
+    "v_theme": "Schwarz / Grau / Weiß",
+    "d_status": "Stand",
+    "v_status": "In Arbeit",
+    "int_label": "02 / Mei Interessn",
+    "int_title": "Wos mi antreibt.",
+    "int_intro": "Verschiedene Interessn. Verschiedene Blickwinkl. A einzige, durchgehende Reise vom Lernen und Wachsn.",
+    "i1_num": "01 — LERNEN",
+    "i1_title": "Wissn & Fähigkeitn",
+    "i1_text": "Neis lernen, nützliche Fähigkeitn entwickln und neigierig bleibn auf des, wos es außerhalb vom Klassnzimmer no gibt.",
+    "i2_num": "02 — AUFBAUEN",
+    "i2_title": "Persönliche Entwicklung",
+    "i2_text": "An bessane Gwohnheitn arbeitn, mi selber bessa kennenlernen und a stärkere Version von mir werdn.",
+    "i3_num": "03 — ENTDECKN",
+    "i3_title": "Ideen & Kreativität",
+    "i3_text": "Technik, Design und andere Sichtweisn entdeckn – und Ideen, de ganz normale Sachn auf oamoi spannend machn.",
+    "mind_label": "03 / Mei Lebnsphilosophie",
+    "q1": "„Nimm deine Ziele ernst,",
+    "q2": "aber nimm des Lebn ned so ernst,",
+    "q3": "dass du des Lebn vergisst.“",
+    "quote_caption": "DIE SVM-CORE-EINSTELLUNG",
+    "footer_note": "© {year} SVM Core. Alle Rechte vorbehaltn.",
+    "back_top": "Zruck nach obn ↑"
+  },
+
+  "ru": {
+    "title": "SVM Core | Личный профиль",
+    "aria_lang": "Сменить язык",
+    "aria_theme": "Переключить светлую / тёмную тему",
+    "nav_about": "Обо мне",
+    "nav_interests": "Интересы",
+    "nav_mindset": "Взгляды",
+    "eyebrow": "Личный профиль / 001",
+    "hero_desc": "Студент. Ученик. Личность. Изучаю новые идеи, развиваю навыки и создаю жизнь, наполненную смыслом.",
+    "btn_discover": "Узнать больше ↗",
+    "btn_mindset": "Мои взгляды",
+    "about_label": "01 / Знакомство",
+    "about_title": "Немного обо мне.",
+    "about_p1": "Добро пожаловать в SVM Core — личное пространство, которое отражает, кто я, что для меня важно и кем я хочу стать.",
+    "about_p2": "Я студент и человек, который учится всю жизнь. Мне интересно знакомиться с разными идеями, совершенствовать себя и понимать мир глубже, чем он кажется на первый взгляд.",
+    "about_p3": "Я считаю, что можно серьёзно относиться к своему будущему и при этом не терять чувство юмора. В жизни есть место амбициям, любопытству и небольшому хаосу.",
+    "about_p4": "Это не законченная история. Это работа в процессе.",
+    "card_label": "ДАННЫЕ ПРОФИЛЯ",
+    "d_name": "Имя",
+    "d_occupation": "Занятие",
+    "v_occupation": "Студент",
+    "d_mindset": "Мышление",
+    "v_mindset": "Нацелен на рост",
+    "d_interests": "Интересы",
+    "v_interests": "Учёба и идеи",
+    "d_theme": "Цвета",
+    "v_theme": "Чёрный / Серый / Белый",
+    "d_status": "Статус",
+    "v_status": "В процессе",
+    "int_label": "02 / Сферы интересов",
+    "int_title": "Что меня движет.",
+    "int_intro": "Разные интересы. Разные точки зрения. Один непрерывный путь обучения и роста.",
+    "i1_num": "01 — УЧИТЬСЯ",
+    "i1_title": "Знания и навыки",
+    "i1_text": "Узнавать новое, развивать полезные навыки и оставаться любознательным ко всему, что лежит за пределами аудитории.",
+    "i2_num": "02 — СТРОИТЬ",
+    "i2_title": "Личностный рост",
+    "i2_text": "Работать над лучшими привычками, глубже понимать себя и становиться лучшей версией себя.",
+    "i3_num": "03 — ИССЛЕДОВАТЬ",
+    "i3_title": "Идеи и творчество",
+    "i3_text": "Исследовать технологии, дизайн, разные точки зрения и идеи, которые делают обычные вещи интересными.",
+    "mind_label": "03 / Личная философия",
+    "q1": "«Серьёзно относись к своим целям,",
+    "q2": "но никогда не воспринимай жизнь настолько всерьёз,",
+    "q3": "чтобы забыть, как жить.»",
+    "quote_caption": "МИРОВОЗЗРЕНИЕ SVM CORE",
+    "footer_note": "© {year} SVM Core. Все права защищены.",
+    "back_top": "Наверх ↑"
+  },
+
+  "ko": {
+    "title": "SVM Core | 개인 프로필",
+    "aria_lang": "언어 변경",
+    "aria_theme": "라이트 / 다크 모드 전환",
+    "nav_about": "소개",
+    "nav_interests": "관심사",
+    "nav_mindset": "마인드셋",
+    "eyebrow": "개인 프로필 / 001",
+    "hero_desc": "학생. 배우는 사람. 한 사람의 개인. 새로운 아이디어를 탐구하고, 역량을 키우며, 의미 있는 삶을 만들어 갑니다.",
+    "btn_discover": "더 알아보기 ↗",
+    "btn_mindset": "나의 마인드셋",
+    "about_label": "01 / 소개",
+    "about_title": "저에 대해 조금.",
+    "about_p1": "SVM Core에 오신 것을 환영합니다 — 제가 어떤 사람인지, 무엇을 소중히 여기는지, 어떤 사람이 되고 싶은지를 담은 개인 공간입니다.",
+    "about_p2": "저는 학생이자 평생 배우는 사람입니다. 다양한 생각을 탐구하고, 스스로를 발전시키며, 눈에 보이는 것 너머의 세상을 이해하는 데 관심이 많습니다.",
+    "about_p3": "미래에 대해 진지하면서도 유머 감각을 잃지 않을 수 있다고 믿습니다. 야망과 호기심, 그리고 약간의 혼돈이 들어설 자리는 충분합니다.",
+    "about_p4": "이야기는 아직 끝나지 않았습니다. 지금도 만들어 가는 중입니다.",
+    "card_label": "프로필 정보",
+    "d_name": "이름",
+    "d_occupation": "직업",
+    "v_occupation": "학생",
+    "d_mindset": "마인드셋",
+    "v_mindset": "성장 지향",
+    "d_interests": "관심사",
+    "v_interests": "배움과 아이디어",
+    "d_theme": "컬러",
+    "v_theme": "검정 / 회색 / 흰색",
+    "d_status": "상태",
+    "v_status": "진행 중",
+    "int_label": "02 / 관심 분야",
+    "int_title": "나를 움직이는 것.",
+    "int_intro": "서로 다른 관심사. 서로 다른 시각. 배움과 성장으로 이어지는 하나의 여정.",
+    "i1_num": "01 — 배우기",
+    "i1_title": "지식과 기술",
+    "i1_text": "새로운 것을 배우고, 쓸모 있는 기술을 키우며, 교실 밖의 기회에도 호기심을 놓지 않습니다.",
+    "i2_num": "02 — 만들기",
+    "i2_title": "개인의 성장",
+    "i2_text": "더 나은 습관, 더 깊은 자기 이해, 더 단단한 나를 향해 나아갑니다.",
+    "i3_num": "03 — 탐구하기",
+    "i3_title": "아이디어와 창의성",
+    "i3_text": "기술과 디자인, 다양한 관점, 그리고 평범한 것을 흥미롭게 만드는 아이디어를 탐구합니다.",
+    "mind_label": "03 / 나의 철학",
+    "q1": "“목표에는 진지하되,",
+    "q2": "삶을 너무 진지하게 받아들여",
+    "q3": "사는 것을 잊지는 마세요.”",
+    "quote_caption": "SVM CORE 마인드셋",
+    "footer_note": "© {year} SVM Core. 모든 권리 보유.",
+    "back_top": "맨 위로 ↑"
+  }
+}
+    </script>
+
     <script>
-        document.getElementById("year").textContent =
-            new Date().getFullYear();
+        (function () {
+            "use strict";
+
+            var root = document.documentElement;
+            var reduceMotion = window.matchMedia &&
+                window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+            /* ---------- Languages ---------- */
+
+            var I18N = JSON.parse(document.getElementById("i18n-data").textContent);
+
+            var LANGS = {
+                en:  { html: "en",    dir: "ltr", code: "EN" },
+                ar:  { html: "ar-SA", dir: "rtl", code: "AR" },
+                bar: { html: "bar",   dir: "ltr", code: "DE" },
+                ru:  { html: "ru",    dir: "ltr", code: "RU" },
+                ko:  { html: "ko",    dir: "ltr", code: "KO" }
+            };
+
+            var current = "en";
+            var swapTimer = null;
+
+            var langEl = document.getElementById("lang");
+            var langBtn = document.getElementById("langBtn");
+            var langMenu = document.getElementById("langMenu");
+            var options = Array.prototype.slice.call(langMenu.querySelectorAll(".lang-option"));
+
+            function store(key, value) {
+                try { localStorage.setItem(key, value); } catch (e) {}
+            }
+
+            function applyLanguage(code) {
+                var meta = LANGS[code];
+                var dict = I18N[code];
+                if (!meta || !dict) { return; }
+
+                current = code;
+                root.lang = meta.html;
+                root.dir = meta.dir;
+
+                var year = String(new Date().getFullYear());
+
+                Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (el) {
+                    var text = dict[el.getAttribute("data-i18n")];
+                    if (text === undefined) { text = I18N.en[el.getAttribute("data-i18n")]; }
+                    if (text !== undefined) { el.textContent = text.replace("{year}", year); }
+                });
+
+                Array.prototype.forEach.call(document.querySelectorAll("[data-i18n-aria]"), function (el) {
+                    var text = dict[el.getAttribute("data-i18n-aria")] || I18N.en[el.getAttribute("data-i18n-aria")];
+                    el.setAttribute("aria-label", text);
+                    el.setAttribute("title", text);
+                });
+
+                document.title = dict.title;
+
+                document.getElementById("curFlag").setAttribute("href", "#flag-" + code);
+                document.getElementById("curCode").textContent = meta.code;
+
+                options.forEach(function (opt) {
+                    opt.setAttribute("aria-checked", opt.getAttribute("data-lang") === code ? "true" : "false");
+                });
+            }
+
+            function setLanguage(code) {
+                if (!LANGS[code] || code === current) { return; }
+                store("svm-lang", code);
+
+                if (reduceMotion) {
+                    applyLanguage(code);
+                    return;
+                }
+
+                // Fade out, swap the text while hidden, fade back in
+                document.body.classList.add("lang-out");
+                clearTimeout(swapTimer);
+                swapTimer = setTimeout(function () {
+                    applyLanguage(code);
+                    window.requestAnimationFrame(function () {
+                        document.body.classList.remove("lang-out");
+                    });
+                }, 200);
+            }
+
+            /* ---------- Language menu behaviour ---------- */
+
+            function openMenu() {
+                langEl.classList.add("open");
+                langBtn.setAttribute("aria-expanded", "true");
+                var selected = langMenu.querySelector('[aria-checked="true"]') || options[0];
+                selected.focus();
+            }
+
+            function closeMenu(returnFocus) {
+                langEl.classList.remove("open");
+                langBtn.setAttribute("aria-expanded", "false");
+                if (returnFocus) { langBtn.focus(); }
+            }
+
+            langBtn.addEventListener("click", function () {
+                if (langEl.classList.contains("open")) { closeMenu(false); } else { openMenu(); }
+            });
+
+            options.forEach(function (opt) {
+                opt.addEventListener("click", function () {
+                    var code = opt.getAttribute("data-lang");
+                    closeMenu(true);
+                    setLanguage(code);
+                });
+            });
+
+            document.addEventListener("click", function (e) {
+                if (!langEl.contains(e.target)) { closeMenu(false); }
+            });
+
+            document.addEventListener("keydown", function (e) {
+                if (!langEl.classList.contains("open")) { return; }
+
+                if (e.key === "Escape") {
+                    closeMenu(true);
+                } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                    e.preventDefault();
+                    var i = options.indexOf(document.activeElement);
+                    var step = e.key === "ArrowDown" ? 1 : -1;
+                    options[(i + step + options.length) % options.length].focus();
+                }
+            });
+
+            /* ---------- Theme ---------- */
+
+            var themeBtn = document.getElementById("themeToggle");
+            var metaTheme = document.getElementById("metaThemeColor");
+            var THEME_COLORS = { dark: "#080808", light: "#f5f5f5" };
+
+            function paintTheme(theme) {
+                root.setAttribute("data-theme", theme);
+                metaTheme.setAttribute("content", THEME_COLORS[theme]);
+            }
+
+            function setTheme(next, originEl) {
+                store("svm-theme", next);
+
+                // No animation if the visitor prefers reduced motion
+                if (reduceMotion) {
+                    paintTheme(next);
+                    return;
+                }
+
+                // Circular reveal growing out of the toggle button
+                if (document.startViewTransition) {
+                    var rect = originEl.getBoundingClientRect();
+                    var x = rect.left + rect.width / 2;
+                    var y = rect.top + rect.height / 2;
+                    var radius = Math.hypot(
+                        Math.max(x, window.innerWidth - x),
+                        Math.max(y, window.innerHeight - y)
+                    );
+
+                    var transition = document.startViewTransition(function () {
+                        paintTheme(next);
+                    });
+
+                    transition.ready.then(function () {
+                        root.animate(
+                            { clipPath: [
+                                "circle(0px at " + x + "px " + y + "px)",
+                                "circle(" + radius + "px at " + x + "px " + y + "px)"
+                            ] },
+                            {
+                                duration: 750,
+                                easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+                                pseudoElement: "::view-transition-new(root)"
+                            }
+                        );
+                    }).catch(function () {});
+
+                    return;
+                }
+
+                // Fallback: smooth colour fade
+                root.classList.add("theme-anim");
+                paintTheme(next);
+                setTimeout(function () { root.classList.remove("theme-anim"); }, 600);
+            }
+
+            themeBtn.addEventListener("click", function () {
+                var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+                setTheme(next, themeBtn);
+            });
+
+            // Follow the system theme live, until the visitor picks one manually
+            if (window.matchMedia) {
+                var mq = window.matchMedia("(prefers-color-scheme: light)");
+                var onSystemChange = function (e) {
+                    var saved = null;
+                    try { saved = localStorage.getItem("svm-theme"); } catch (err) {}
+                    if (!saved) { paintTheme(e.matches ? "light" : "dark"); }
+                };
+                if (mq.addEventListener) { mq.addEventListener("change", onSystemChange); }
+            }
+
+            /* ---------- Start ---------- */
+
+            paintTheme(root.getAttribute("data-theme") === "light" ? "light" : "dark");
+
+            var savedLang = null;
+            try { savedLang = localStorage.getItem("svm-lang"); } catch (e) {}
+            applyLanguage(LANGS[savedLang] ? savedLang : "en");
+        })();
     </script>
 
 </body>
