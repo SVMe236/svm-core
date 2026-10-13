@@ -118,6 +118,18 @@
             line-height: 1.7;
         }
 
+        .scroll-progress {
+            position: fixed;
+            inset: 0 0 auto;
+            z-index: 1000;
+            height: 3px;
+            background: var(--text);
+            transform: scaleX(0);
+            transform-origin: left center;
+            transition: transform 80ms linear;
+            pointer-events: none;
+        }
+
         a {
             color: inherit;
             text-decoration: none;
@@ -736,15 +748,17 @@
 
 <body id="top">
 
+    <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
     <!-- Flag artwork (drawn as SVG so it looks the same on every device) -->
     <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
         <!-- English (Canada) -->
-        <symbol id="flag-en" viewBox="0 0 60 40">
-            <rect width="60" height="40" fill="#ffffff"/>
-            <rect width="15" height="40" fill="#D80621"/>
-            <rect x="45" width="15" height="40" fill="#D80621"/>
-            <path d="M30 6.5L32.2 10.9L34.4 9.9L33.8 15.3L36.8 13.5L38.1 14.8L42.4 15.6L40.4 19.2L41.4 20.5L37.8 23.1L38.3 25.5L33.9 24.7L30.6 24.7L30.6 31.9L29.4 31.9L29.4 24.7L26.1 24.7L21.7 25.5L22.2 23.1L18.6 20.5L19.6 19.2L17.6 15.6L21.9 14.8L23.2 13.5L26.2 15.3L25.6 9.9L27.8 10.9Z" fill="#D80621"/>
-        </symbol>
+<symbol id="flag-en" viewBox="0 0 60 40">
+    <rect width="60" height="40" fill="#ffffff"/>
+    <rect width="15" height="40" fill="#D80621"/>
+    <rect x="45" width="15" height="40" fill="#D80621"/>
+    <path d="M30 6.5L32.2 10.9L34.4 9.9L33.8 15.3L36.8 13.5L38.1 14.8L42.4 15.6L40.4 19.2L41.4 20.5L37.8 23.1L38.3 25.5L33.9 24.7L30.6 24.7L30.6 31.9L29.4 31.9L29.4 24.7L26.1 24.7L21.7 25.5L22.2 23.1L18.6 20.5L19.6 19.2L17.6 15.6L21.9 14.8L23.2 13.5L26.2 15.3L25.6 9.9L27.8 10.9Z" fill="#D80621"/>
+</symbol>
 
         <!-- Saudi Arabia (simplified) -->
         <symbol id="flag-ar" viewBox="0 0 60 40">
@@ -871,7 +885,7 @@
             <div class="container hero-content">
                 <p class="eyebrow" data-i18n="eyebrow">Personal Profile / 236</p>
 
-                <h1><bdi dir="ltr">§VM<br>CORE<span>.</span></bdi></h1>
+                <h1><bdi dir="ltr">§VM<br>Core<span>.</span></bdi></h1>
 
                 <p class="hero-description" data-i18n="hero_desc">Student. Learner. Individual. Exploring new ideas, building skills, and creating a life that means something.</p>
 
@@ -1268,6 +1282,28 @@
             var root = document.documentElement;
             var reduceMotion = window.matchMedia &&
                 window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+            /* ---------- Scroll progress ---------- */
+
+            var scrollProgress = document.getElementById("scrollProgress");
+            var progressFrame = null;
+
+            function updateScrollProgress() {
+                progressFrame = null;
+                var scrollRange = root.scrollHeight - window.innerHeight;
+                var progress = scrollRange > 0 ? window.scrollY / scrollRange : 0;
+                scrollProgress.style.transform = "scaleX(" + Math.min(1, Math.max(0, progress)) + ")";
+            }
+
+            function scheduleScrollProgressUpdate() {
+                if (progressFrame === null) {
+                    progressFrame = window.requestAnimationFrame(updateScrollProgress);
+                }
+            }
+
+            window.addEventListener("scroll", scheduleScrollProgressUpdate, { passive: true });
+            window.addEventListener("resize", scheduleScrollProgressUpdate);
+            updateScrollProgress();
 
             /* ---------- Languages ---------- */
 
